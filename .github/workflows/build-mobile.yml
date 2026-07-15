@@ -21,8 +21,8 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -80,8 +80,8 @@ jobs:
       IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -91,7 +91,9 @@ jobs:
       - name: Install JavaScript dependencies
         run: npm ci
       - name: Initialize iOS project
-        run: npm run mobile:ios:init
+        # Tauri requires a team identifier while generating Xcode files even
+        # for a no-sign simulator build. The placeholder is never used to sign.
+        run: APPLE_DEVELOPMENT_TEAM="${APPLE_DEVELOPMENT_TEAM:-0000000000}" npm run mobile:ios:init
       - name: Import Apple distribution certificate
         if: env.IOS_CERTIFICATE_BASE64 != ''
         uses: apple-actions/import-codesign-certs@v3
