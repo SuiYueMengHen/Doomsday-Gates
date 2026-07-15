@@ -2,6 +2,16 @@ name: Build mobile apps
 
 on:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: Mobile platform to build
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - android
+          - ios
   push:
     tags:
       - "mobile-v*"
@@ -11,6 +21,7 @@ permissions:
 
 jobs:
   android:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'android'
     name: Android arm64
     runs-on: ubuntu-22.04
     env:
@@ -71,6 +82,7 @@ jobs:
             src-tauri/gen/android/app/build/outputs/bundle/**/*.aab
 
   ios:
+    if: github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'ios'
     name: iOS
     runs-on: macos-14
     env:
@@ -110,6 +122,8 @@ jobs:
         run: npm run mobile:ios:build
       - name: Build unsigned simulator app
         if: env.IOS_CERTIFICATE_BASE64 == '' || env.IOS_PROVISIONING_PROFILE_BASE64 == '' || env.APPLE_DEVELOPMENT_TEAM == ''
+        env:
+          APPLE_DEVELOPMENT_TEAM: "0000000000"
         run: npm run mobile:ios:build:sim
 
       - name: Upload iOS packages
