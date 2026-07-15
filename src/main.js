@@ -99,11 +99,28 @@ const weatherMesh = new THREE.Points(weatherGeo, weatherMat);
 weatherMesh.visible = false;
 scene.add(weatherMesh);
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+const mobileViewport = { width: window.innerWidth, height: window.innerHeight, portrait: window.innerHeight > window.innerWidth };
+function syncViewport() {
+  const viewport = window.visualViewport;
+  mobileViewport.width = Math.max(1, Math.round(viewport?.width || window.innerWidth));
+  mobileViewport.height = Math.max(1, Math.round(viewport?.height || window.innerHeight));
+  mobileViewport.portrait = mobileViewport.height > mobileViewport.width;
+  document.documentElement.style.setProperty('--app-height', `${mobileViewport.height}px`);
+  document.documentElement.dataset.orientation = mobileViewport.portrait ? 'portrait' : 'landscape';
+  camera.aspect = mobileViewport.width / mobileViewport.height;
+  camera.fov = mobileViewport.portrait ? 72 : 55;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+  renderer.setSize(mobileViewport.width, mobileViewport.height, false);
+}
+let viewportFrame = 0;
+function scheduleViewportSync() {
+  cancelAnimationFrame(viewportFrame);
+  viewportFrame = requestAnimationFrame(syncViewport);
+}
+window.addEventListener('resize', scheduleViewportSync, { passive: true });
+window.addEventListener('orientationchange', scheduleViewportSync, { passive: true });
+window.visualViewport?.addEventListener('resize', scheduleViewportSync, { passive: true });
+syncViewport();
 
 // ============================================================ 环境：按块无限生成
 function makeRoadTexture() {
@@ -1523,6 +1540,7 @@ function enterSideMode() {
   for (const offset of [14, 38, 63, 88, 112, 140, 168]) spawnCoinTrail(squad.z - offset, true, 7);
   showBanner('2D 封锁区 / 跳跃模式');
   ui.modeTag?.classList.add('visible');
+  ui.hud?.classList.add('side-active');
 }
 
 function exitSideMode() {
@@ -1537,6 +1555,7 @@ function exitSideMode() {
   state.trickleTimer = 1.5;
   state.nextSideAt = state.dist + 360;
   ui.modeTag?.classList.remove('visible');
+  ui.hud?.classList.remove('side-active');
   showBanner('3D 突围模式');
 }
 
@@ -1706,6 +1725,8 @@ const ui = {
   runCoinCount: document.getElementById('runCoinCount'),
   menuCoinCount: document.getElementById('menuCoinCount'),
   modeTag: document.getElementById('modeTag'),
+  jumpTouchBtn: document.getElementById('jumpTouchBtn'),
+  slideTouchBtn: document.getElementById('slideTouchBtn'),
   shop: document.getElementById('shopOverlay'),
   shopBtn: document.getElementById('shopBtn'),
   shopCloseBtn: document.getElementById('shopCloseBtn'),
@@ -1980,6 +2001,17 @@ window.addEventListener('pointermove', (e) => {
   squad.targetX = THREE.MathUtils.clamp(squad.targetX + dx * 0.02, -SQUAD_X_LIMIT, SQUAD_X_LIMIT);
 });
 window.addEventListener('pointerup', () => { dragging = false; });
+ui.jumpTouchBtn.addEventListener('pointerdown', (e) => {
+  e.preventDefault(); e.stopPropagation(); jumpQueued = true; ui.jumpTouchBtn.classList.add('active');
+});
+ui.jumpTouchBtn.addEventListener('pointerup', () => ui.jumpTouchBtn.classList.remove('active'));
+ui.jumpTouchBtn.addEventListener('pointercancel', () => ui.jumpTouchBtn.classList.remove('active'));
+const setTouchSlide = (active, event) => {
+  event?.preventDefault(); event?.stopPropagation(); keys.KeyS = active; ui.slideTouchBtn.classList.toggle('active', active);
+};
+ui.slideTouchBtn.addEventListener('pointerdown', (e) => setTouchSlide(true, e));
+ui.slideTouchBtn.addEventListener('pointerup', (e) => setTouchSlide(false, e));
+ui.slideTouchBtn.addEventListener('pointercancel', (e) => setTouchSlide(false, e));
 window.addEventListener('keydown', (e) => {
   keys[e.code] = true;
   if (import.meta.env.DEV && e.code === 'F2' && state.phase === 'run' && state.mode === 'runner3d') {
@@ -2094,6 +2126,7 @@ function startRun() {
   gateGroup.visible = true;
   pickupGroup.visible = true;
   ui.modeTag.classList.remove('visible');
+  ui.hud.classList.remove('side-active');
   ui.weaponTag.textContent = `${WEAPONS[state.weapon].name} · Mk.1`;
   ui.bossbar.classList.remove('visible');
 
@@ -2921,9 +2954,10 @@ function animate(timestamp) {
   const shy = (Math.random() - 0.5) * shakeAmount;
   const targetMix = state.mode === 'side2d' ? 1 : 0;
   state.modeMix += (targetMix - state.modeMix) * Math.min(1, dt * 2.25);
-  runnerCameraPos.set(squad.x * 0.55 + shx, 8.8 + shy, squad.z + 11);
+  const portraitPullback = mobileViewport.portrait ? 1.34 : 1;
+  runnerCameraPos.set(squad.x * 0.55 + shx, 8.8 * portraitPullback + shy, squad.z + 11 * portraitPullback);
   // 镜头位于道路边缘与建筑之间，避免侧视时穿入近侧楼体。
-  sideCameraPos.set(7.6 + shx, 4.9 + shy, squad.z - 5);
+  sideCameraPos.set(7.6 * portraitPullback + shx, 4.9 * portraitPullback + shy, squad.z - 5);
   runnerCameraLook.set(squad.x * 0.55, 0.8 + squad.y, squad.z - 7);
   sideCameraLook.set(0, 1.45 + squad.y * 0.25, squad.z - 5);
   camera.position.lerpVectors(runnerCameraPos, sideCameraPos, state.modeMix);

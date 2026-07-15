@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="theme-color" content="#080b0f" />
   <title>末日之门 · Doomsday Gates</title>
   <style>
@@ -25,15 +25,15 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); }
+    html, body { width: 100%; height: 100%; min-height: 100dvh; overflow: hidden; background: var(--bg); }
     body {
       color: var(--text); font-family: var(--font-ui); user-select: none;
       -webkit-user-select: none; touch-action: none; -webkit-font-smoothing: antialiased;
     }
     button { font: inherit; }
     button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
-    #app { position: fixed; inset: 0; }
-    canvas { display: block; }
+    #app { position: fixed; inset: 0; width: 100vw; height: var(--app-height, 100dvh); }
+    canvas { display: block; width: 100%; height: 100%; }
 
     /* Shared tactical glass */
     .glass {
@@ -134,6 +134,17 @@
       font: 750 11px/1 var(--font-data); letter-spacing: .12em;
     }
     #modeTag.visible { display: block; }
+    #mobileControls {
+      position: absolute; inset: auto max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+      z-index: 3; display: none; justify-content: space-between; align-items: end; pointer-events: none;
+    }
+    .touch-action {
+      width: 72px; height: 72px; pointer-events: auto; touch-action: none; color: #fff;
+      border: 1px solid rgba(164,226,255,.62); border-radius: 50%; background: rgba(11,29,39,.74);
+      box-shadow: inset 0 0 0 4px rgba(95,197,255,.08), 0 8px 28px rgba(0,0,0,.4);
+      font: 800 12px/1 var(--font-ui); letter-spacing: .08em; -webkit-tap-highlight-color: transparent;
+    }
+    .touch-action:active, .touch-action.active { transform: scale(.94); background: rgba(28,98,126,.9); border-color: var(--blue); }
     #buffRow { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
     .buffChip {
       padding: 7px 12px; background: rgba(9,14,19,.86); border: 1px solid rgba(126,226,168,.28);
@@ -166,7 +177,7 @@
     .overlay {
       position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center;
       background: radial-gradient(circle at 68% 35%, rgba(107,52,28,.16), transparent 38%), linear-gradient(90deg, rgba(5,8,11,.97), rgba(5,8,11,.76) 56%, rgba(5,8,11,.9));
-      overflow: hidden;
+      overflow: auto; padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     }
     .overlay::before {
       content: ""; position: absolute; inset: 0; opacity: .26; pointer-events: none;
@@ -211,7 +222,7 @@
     .meta-balance { position: absolute; top: 24px; right: 28px; display: flex; align-items: center; gap: 8px; color: #ffe0a3; font: 700 13px/1 var(--font-data); }
     .panel-overlay { padding: 28px; }
     .panel {
-      position: relative; width: min(920px, calc(100vw - 40px)); max-height: min(720px, calc(100vh - 40px));
+      position: relative; width: min(920px, calc(100vw - 40px)); max-height: min(720px, calc(100dvh - 40px));
       padding: 34px; overflow-y: auto; text-align: left;
       clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
     }
@@ -273,6 +284,37 @@
       .shop-grid { grid-template-columns: 1fr; }
       .content-grid, .choice-panel .content-grid { grid-template-columns: 1fr; }
       .panel { padding: 24px 18px; }
+      .btn, .buy-btn, .select-card, .quality-select { min-height: 48px; }
+    }
+    @media (pointer: coarse) {
+      #hud.side-active #mobileControls { display: flex; }
+      #hud.side-active #weaponTag { bottom: max(102px, calc(env(safe-area-inset-bottom) + 92px)); }
+      #hud.side-active #buffRow { bottom: max(142px, calc(env(safe-area-inset-bottom) + 132px)); }
+      #hud.side-active #modeTag { bottom: max(104px, calc(env(safe-area-inset-bottom) + 94px)); }
+    }
+    @media (orientation: portrait) {
+      #topbar { top: max(12px, env(safe-area-inset-top)); }
+      #muteBtn, #pauseBtn { top: max(12px, env(safe-area-inset-top)); }
+      #bossbar { top: max(76px, calc(env(safe-area-inset-top) + 66px)); }
+      #banner { top: 25%; max-width: 92vw; white-space: normal; text-align: center; }
+      #buffRow { max-width: calc(100vw - 24px); flex-wrap: wrap; justify-content: center; }
+      .menu-actions .btn { flex: 1 1 44%; min-width: 0; }
+    }
+    @media (orientation: landscape) and (max-height: 520px) {
+      .overlay { align-items: flex-start; }
+      .menu-card { width: min(920px, calc(100vw - 48px)); padding: 18px 24px; margin: auto; }
+      .overlay h1 { font-size: 38px; } .overlay h2 { font-size: 32px; }
+      .eyebrow { margin-bottom: 7px; } .title-en { margin-bottom: 12px; }
+      .rule-grid { grid-template-columns: repeat(3, 1fr); margin-bottom: 14px; }
+      .rule { min-height: 50px; padding: 8px 10px; }
+      .menu-actions { gap: 8px; }
+      .btn { min-height: 46px; padding-block: 10px; }
+      .panel { max-height: calc(100dvh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom))); padding: 18px 22px; }
+      .panel-head { margin-bottom: 14px; padding-bottom: 12px; }
+      .shop-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .content-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .choice-panel .content-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .select-card { min-height: 96px; }
     }
     @media (max-height: 650px) {
       .menu-card { padding-block: 24px; } .overlay h1 { font-size: 48px; }
@@ -300,6 +342,10 @@
     <div id="buffRow"></div>
     <div id="weaponTag">步枪</div>
     <div id="modeTag">2D / SPACE 跳跃 · S 滑行</div>
+    <div id="mobileControls" aria-label="横版模式触控操作">
+      <button id="slideTouchBtn" class="touch-action" type="button" aria-label="按住滑行">滑行</button>
+      <button id="jumpTouchBtn" class="touch-action" type="button" aria-label="跳跃">跳跃</button>
+    </div>
     <div id="banner" role="status" aria-live="polite"></div>
     <button id="muteBtn" type="button" aria-label="关闭声音" title="声音">
       <svg class="sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 5 6.5 9H3v6h3.5l4.5 4zM15 9a4 4 0 0 1 0 6m2.5-8.5a8 8 0 0 1 0 11"/></svg>

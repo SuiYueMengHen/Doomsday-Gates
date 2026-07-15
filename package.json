@@ -10,7 +10,13 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "mobile:android:init": "tauri android init --ci",
+    "mobile:android:build:debug": "tauri android build --debug --apk -t aarch64 --ci",
+    "mobile:android:build": "tauri android build --apk --aab -t aarch64 --ci",
+    "mobile:ios:init": "tauri ios init --ci",
+    "mobile:ios:build:sim": "tauri ios build --debug --target aarch64-sim --no-sign --ci",
+    "mobile:ios:build": "tauri ios build --export-method app-store-connect --ci"
   },
   "dependencies": {
     "three": "^0.185.1"
