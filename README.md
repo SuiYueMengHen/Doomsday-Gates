@@ -3,9 +3,16 @@
 基于 Vite、Three.js 和 Tauri 2 的无尽跑酷桌面游戏。
 
 [![Build desktop installers](https://github.com/SuiYueMengHen/Doomsday-Gates/actions/workflows/build-desktop.yml/badge.svg)](https://github.com/SuiYueMengHen/Doomsday-Gates/actions/workflows/build-desktop.yml)
+[![Deploy web game](https://github.com/SuiYueMengHen/Doomsday-Gates/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/SuiYueMengHen/Doomsday-Gates/actions/workflows/deploy-pages.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/SuiYueMengHen/Doomsday-Gates)](https://github.com/SuiYueMengHen/Doomsday-Gates/releases/latest)
 
 > 本项目基于 [ayasa520/SBGame](https://github.com/ayasa520/SBGame) 进行二次开发。感谢原作者公开项目源码；本仓库的玩法扩展、桌面端适配和界面重构不代表原作者立场。
+
+## 在线试玩
+
+无需安装，打开 **[GitHub Pages 在线版](https://suiyuemenghen.github.io/Doomsday-Gates/)** 即可游玩。
+
+网页版与桌面版使用相同的游戏内容。游戏进度保存在当前浏览器的本地存储中；清理站点数据或更换浏览器后，存档不会自动同步。
 
 ## 当前玩法
 
@@ -29,6 +36,7 @@
 ```bash
 npm ci
 npm run dev          # 浏览器开发模式
+npm run build:pages  # 构建 GitHub Pages 版本
 npm run desktop:dev  # Tauri 桌面开发模式
 ```
 
@@ -53,7 +61,7 @@ npm run desktop:build
 
 ## 下载
 
-请前往 [GitHub Releases](https://github.com/SuiYueMengHen/Doomsday-Gates/releases) 下载：
+可以直接游玩[网页版](https://suiyuemenghen.github.io/Doomsday-Gates/)，或前往 [GitHub Releases](https://github.com/SuiYueMengHen/Doomsday-Gates/releases) 下载桌面版：
 
 - Windows：`.msi` 或 NSIS `.exe`
 - macOS：`.dmg`
